@@ -1,4 +1,4 @@
-name: Vimal Final Success
+name: Vimal Final Fix Dependencies
 on: 
   workflow_dispatch:
 
@@ -15,7 +15,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # திருத்தம்: இங்கே '8.0' என மேற்கோள் குறிக்குள் கொடுக்கப்பட்டுள்ளது
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -26,16 +25,23 @@ jobs:
         run: |
           rm -rf settings.gradle app/build.gradle
           
-          # Settings கோப்பை உருவாக்குதல்
+          # Settings கோப்பு
           echo "pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }" > settings.gradle
           echo "dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }" >> settings.gradle
           echo "rootProject.name = 'Panacam'" >> settings.gradle
           echo "include ':app'" >> settings.gradle
 
-          # App Build கோப்பை உருவாக்குதல்
+          # App Build கோப்பு (Dependencies உடன்)
           mkdir -p app
           echo "plugins { id 'com.android.application' version '8.0.0' }" > app/build.gradle
           echo "android { namespace 'com.vimal.panocam'; compileSdk 33; defaultConfig { applicationId 'com.vimal.panocam'; minSdk 24; targetSdk 33; versionCode 1; versionName '1.0' } }" >> app/build.gradle
+          
+          # மிக முக்கியம்: இந்த வரிகள் தான் விடுபட்டிருந்தன!
+          echo "dependencies {" >> app/build.gradle
+          echo "    implementation 'androidx.appcompat:appcompat:1.6.1'" >> app/build.gradle
+          echo "    implementation 'com.google.android.material:material:1.9.0'" >> app/build.gradle
+          echo "    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'" >> app/build.gradle
+          echo "}" >> app/build.gradle
 
       - name: Build APK Directly
         run: gradle assembleDebug --stacktrace
@@ -43,5 +49,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Final-App
+          name: Vimal-Working-App
           path: "**/*.apk"
