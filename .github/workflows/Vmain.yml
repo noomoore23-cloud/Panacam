@@ -1,5 +1,4 @@
-
-name: Vimal Final Success
+name: Vimal Manifest Fix
 on: 
   workflow_dispatch:
 
@@ -22,16 +21,16 @@ jobs:
           gradle-version: '8.0' 
           cache-disabled: true
 
-      - name: Create Config Files
+      - name: Create Missing Files
         run: |
-          # பழைய கோப்புகளை அழித்தல்
+          # 1. பழைய குப்பைகளை அழித்தல் (ஆனால் src போல்டரை அழிக்காது)
           rm -rf settings.gradle app/build.gradle gradle.properties
           
-          # 1. (புதியது!) gradle.properties உருவாக்குதல் - இதுதான் AndroidX பிரச்சனைக்குத் தீர்வு
+          # 2. gradle.properties (AndroidX Fix)
           echo "android.useAndroidX=true" > gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
           
-          # 2. Settings கோப்பை உருவாக்குதல்
+          # 3. Settings கோப்பு
           cat <<EOF > settings.gradle
           pluginManagement { 
               repositories { 
@@ -51,7 +50,7 @@ jobs:
           include ':app'
           EOF
           
-          # 3. App Build கோப்பை உருவாக்குதல்
+          # 4. App Build கோப்பு
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins {
@@ -75,11 +74,33 @@ jobs:
           }
           EOF
 
+          # 5. (மிக முக்கியம்!) AndroidManifest.xml உருவாக்குதல்
+          mkdir -p app/src/main
+          cat <<EOF > app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.vimal.panocam">
+              <application
+                  android:allowBackup="true"
+                  android:label="Panacam"
+                  android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
       - name: Build APK Directly
         run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Final-App
+          name: Vimal-Panacam-App
           path: "**/*.apk"
