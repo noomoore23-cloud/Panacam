@@ -1,6 +1,6 @@
 name: Vimal Build APK
 on: 
-  workflow_dispatch: # நீங்கள் கைமுறையாக பட்டனை அழுத்தி இயக்க
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,12 +16,17 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Download Gradle Wrapper Jar
+        run: |
+          mkdir -p gradle/wrapper
+          curl -L https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build with Gradle
         run: ./gradlew assembleDebug --stacktrace
-https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
