@@ -1,4 +1,5 @@
-name: Vimal Final Fix Dependencies
+
+name: Vimal Clean Success
 on: 
   workflow_dispatch:
 
@@ -21,28 +22,54 @@ jobs:
           gradle-version: '8.0' 
           cache-disabled: true
 
-      - name: Force Create Config Files
+      - name: Create Perfect Config Files
         run: |
-          # 1. பழைய கோப்புகளை அழித்தல்
+          # பழைய கோப்புகளை அழித்தல்
           rm -rf settings.gradle app/build.gradle
           
-          # 2. Settings கோப்பை உருவாக்குதல்
-          echo "pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }" > settings.gradle
-          echo "dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }" >> settings.gradle
-          echo "rootProject.name = 'Panacam'" >> settings.gradle
-          echo "include ':app'" >> settings.gradle
-
-          # 3. App Build கோப்பை உருவாக்குதல் (முக்கியமான மாற்றம் இங்கே!)
-          mkdir -p app
-          echo "plugins { id 'com.android.application' version '8.0.0' }" > app/build.gradle
-          echo "android { namespace 'com.vimal.panocam'; compileSdk 33; defaultConfig { applicationId 'com.vimal.panocam'; minSdk 24; targetSdk 33; versionCode 1; versionName '1.0' } }" >> app/build.gradle
+          # 1. Settings கோப்பை உருவாக்குதல் (தெளிவான முறையில்)
+          cat <<EOF > settings.gradle
+          pluginManagement { 
+              repositories { 
+                  google() 
+                  mavenCentral() 
+                  gradlePluginPortal() 
+              } 
+          }
+          dependencyResolutionManagement { 
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS) 
+              repositories { 
+                  google() 
+                  mavenCentral() 
+              } 
+          }
+          rootProject.name = 'Panacam'
+          include ':app'
+          EOF
           
-          # இந்த வரிகள் தான் விடுபட்டிருந்தன (Dependencies)
-          echo "dependencies {" >> app/build.gradle
-          echo "    implementation 'androidx.appcompat:appcompat:1.6.1'" >> app/build.gradle
-          echo "    implementation 'com.google.android.material:material:1.9.0'" >> app/build.gradle
-          echo "    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'" >> app/build.gradle
-          echo "}" >> app/build.gradle
+          # 2. App Build கோப்பை உருவாக்குதல் (Dependencies உடன்)
+          mkdir -p app
+          cat <<EOF > app/build.gradle
+          plugins {
+              id 'com.android.application' version '8.0.0'
+          }
+          android {
+              namespace 'com.vimal.panocam'
+              compileSdk 33
+              defaultConfig {
+                  applicationId "com.vimal.panocam"
+                  minSdk 24
+                  targetSdk 33
+                  versionCode 1
+                  versionName "1.0"
+              }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.9.0'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+          }
+          EOF
 
       - name: Build APK Directly
         run: gradle assembleDebug --stacktrace
@@ -50,5 +77,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Working-App
+          name: Vimal-App-Final
           path: "**/*.apk"
