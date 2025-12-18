@@ -1,5 +1,5 @@
 
-name: Vimal Clean Success
+name: Vimal Final Success
 on: 
   workflow_dispatch:
 
@@ -22,12 +22,16 @@ jobs:
           gradle-version: '8.0' 
           cache-disabled: true
 
-      - name: Create Perfect Config Files
+      - name: Create Config Files
         run: |
           # பழைய கோப்புகளை அழித்தல்
-          rm -rf settings.gradle app/build.gradle
+          rm -rf settings.gradle app/build.gradle gradle.properties
           
-          # 1. Settings கோப்பை உருவாக்குதல் (தெளிவான முறையில்)
+          # 1. (புதியது!) gradle.properties உருவாக்குதல் - இதுதான் AndroidX பிரச்சனைக்குத் தீர்வு
+          echo "android.useAndroidX=true" > gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          
+          # 2. Settings கோப்பை உருவாக்குதல்
           cat <<EOF > settings.gradle
           pluginManagement { 
               repositories { 
@@ -47,7 +51,7 @@ jobs:
           include ':app'
           EOF
           
-          # 2. App Build கோப்பை உருவாக்குதல் (Dependencies உடன்)
+          # 3. App Build கோப்பை உருவாக்குதல்
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins {
@@ -77,5 +81,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-App-Final
+          name: Vimal-Final-App
           path: "**/*.apk"
