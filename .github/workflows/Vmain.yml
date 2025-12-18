@@ -1,4 +1,5 @@
-name: Vimal Manifest Fix
+
+name: Vimal Install Fix
 on: 
   workflow_dispatch:
 
@@ -21,16 +22,17 @@ jobs:
           gradle-version: '8.0' 
           cache-disabled: true
 
-      - name: Create Missing Files
+      - name: Create Files & Fix Install Issue
         run: |
-          # 1. பழைய குப்பைகளை அழித்தல் (ஆனால் src போல்டரை அழிக்காது)
-          rm -rf settings.gradle app/build.gradle gradle.properties
+          # பழைய கோப்புகளை அழித்தல்
+          rm -rf settings.gradle app/build.gradle gradle.properties app/src/main/AndroidManifest.xml
           
-          # 2. gradle.properties (AndroidX Fix)
+          # 1. (மிக முக்கியம்!) இன்ஸ்டால் பிரச்சனையைத் தீர்க்கும் வரிகள்
           echo "android.useAndroidX=true" > gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
+          echo "android.injected.testOnly=false" >> gradle.properties  # <--- இதுதான் அந்த மேஜிக் வரி!
           
-          # 3. Settings கோப்பு
+          # 2. Settings கோப்பு
           cat <<EOF > settings.gradle
           pluginManagement { 
               repositories { 
@@ -50,7 +52,7 @@ jobs:
           include ':app'
           EOF
           
-          # 4. App Build கோப்பு
+          # 3. App Build கோப்பு
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins {
@@ -74,7 +76,7 @@ jobs:
           }
           EOF
 
-          # 5. (மிக முக்கியம்!) AndroidManifest.xml உருவாக்குதல்
+          # 4. Manifest கோப்பு
           mkdir -p app/src/main
           cat <<EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
@@ -102,5 +104,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Panacam-App
+          name: Vimal-Panacam-Working
           path: "**/*.apk"
