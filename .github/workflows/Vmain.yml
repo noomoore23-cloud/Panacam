@@ -1,4 +1,4 @@
-name: Vimal Final Success
+name: Vimal Direct Build
 on: 
   workflow_dispatch:
 
@@ -15,38 +15,34 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Force Create ALL Config Files
-        run: |
-          # 1. பழைய குப்பைகளை அழித்தல்
-          rm -rf gradle settings.gradle app/build.gradle
-          
-          # 2. சரியான Gradle Wrapper அமைத்தல்
-          mkdir -p gradle/wrapper
-          echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
-          echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip" >> gradle/wrapper/gradle-wrapper.properties
-          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
-          echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-          
-          curl -L https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-          chmod +x gradlew
+      # இதுதான் மேஜிக்! Wrapper-ஐ நம்பாமல் நேரடியாக Gradle 8.0-ஐ இன்ஸ்டால் செய்கிறோம்
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.0
 
-          # 3. மிக முக்கியமான Settings கோப்பு (இங்குதான் Google இணைப்பு உள்ளது)
+      - name: Force Create Config Files
+        run: |
+          # 1. பழைய கோப்புகளை அழித்தல்
+          rm -rf settings.gradle app/build.gradle
+          
+          # 2. Settings கோப்பை உருவாக்குதல் (Google இணைப்புடன்)
           echo "pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }" > settings.gradle
           echo "dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }" >> settings.gradle
           echo "rootProject.name = 'Panacam'" >> settings.gradle
           echo "include ':app'" >> settings.gradle
 
-          # 4. App Build கோப்பு (சரியான வெர்ஷனுடன்)
+          # 3. App Build கோப்பை உருவாக்குதல்
           mkdir -p app
           echo "plugins { id 'com.android.application' version '8.0.0' }" > app/build.gradle
           echo "android { namespace 'com.vimal.panocam'; compileSdk 33; defaultConfig { applicationId 'com.vimal.panocam'; minSdk 24; targetSdk 33; versionCode 1; versionName '1.0' } }" >> app/build.gradle
 
-      - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build APK Directly
+        # இங்கு நாம் ./gradlew பயன்படுத்தவில்லை, நேரடியாக 'gradle' கட்டளையைப் பயன்படுத்துகிறோம்
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-App-Final
+          name: Vimal-Final-APK
           path: "**/*.apk"
