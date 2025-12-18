@@ -23,20 +23,21 @@ jobs:
 
       - name: Force Create Config Files
         run: |
+          # 1. பழைய கோப்புகளை அழித்தல்
           rm -rf settings.gradle app/build.gradle
           
-          # Settings கோப்பு
+          # 2. Settings கோப்பை உருவாக்குதல்
           echo "pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }" > settings.gradle
           echo "dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }" >> settings.gradle
           echo "rootProject.name = 'Panacam'" >> settings.gradle
           echo "include ':app'" >> settings.gradle
 
-          # App Build கோப்பு (Dependencies உடன்)
+          # 3. App Build கோப்பை உருவாக்குதல் (முக்கியமான மாற்றம் இங்கே!)
           mkdir -p app
           echo "plugins { id 'com.android.application' version '8.0.0' }" > app/build.gradle
           echo "android { namespace 'com.vimal.panocam'; compileSdk 33; defaultConfig { applicationId 'com.vimal.panocam'; minSdk 24; targetSdk 33; versionCode 1; versionName '1.0' } }" >> app/build.gradle
           
-          # மிக முக்கியம்: இந்த வரிகள் தான் விடுபட்டிருந்தன!
+          # இந்த வரிகள் தான் விடுபட்டிருந்தன (Dependencies)
           echo "dependencies {" >> app/build.gradle
           echo "    implementation 'androidx.appcompat:appcompat:1.6.1'" >> app/build.gradle
           echo "    implementation 'com.google.android.material:material:1.9.0'" >> app/build.gradle
