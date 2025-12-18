@@ -1,4 +1,4 @@
-name: Vimal Real App Success
+name: Vimal Final APK Finder
 on: 
   workflow_dispatch:
 
@@ -76,7 +76,7 @@ jobs:
               package="com.vimal.panocam.nativeapp">
               <application
                   android:allowBackup="true"
-                  android:label="Panacam Real">
+                  android:label="Panacam Final">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true">
@@ -134,12 +134,19 @@ jobs:
           }
           EOF
 
-      - name: Build APK (Clean & Build)
-        # 'clean' சேர்த்து பழைய குப்பைகளை நீக்கி, புதிதாக உருவாக்குகிறோம்
+      - name: Build APK
+        # Clean & Build - பழைய குப்பைகளை அழித்து புதிதாக உருவாக்குதல்
         run: gradle clean assembleDebug -Pandroid.injected.testOnly=false --stacktrace
+
+      - name: Find and Move APK
+        run: |
+          echo "APK தேடுகிறது..."
+          # APK எங்கே இருந்தாலும் அதை கண்டுபிடித்து வெளியே எடுத்து வைக்கும் மேஜிக் வரி
+          find . -name "*.apk" -type f -exec cp {} ./Vimal-Final.apk \;
+          ls -l Vimal-Final.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Real-App
-          path: app/build/outputs/apk/debug/*.apk
+          name: Vimal-Final-App
+          path: Vimal-Final.apk
