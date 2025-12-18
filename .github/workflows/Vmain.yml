@@ -1,4 +1,5 @@
-name: Vimal Universal Install Fix
+
+name: Vimal Total Recreate
 on: 
   workflow_dispatch:
 
@@ -21,12 +22,12 @@ jobs:
           gradle-version: '8.0' 
           cache-disabled: true
 
-      - name: Create Fresh Project Files
+      - name: Create COMPLETE Project from Scratch
         run: |
-          # பழைய கோப்புகளை அழித்தல்
-          rm -rf settings.gradle app/build.gradle gradle.properties app/src/main/AndroidManifest.xml
+          # 1. பழைய கோப்புகளை அழித்தல் (Clean Slate)
+          rm -rf app settings.gradle gradle.properties
           
-          # 1. Settings கோப்பு
+          # 2. Settings கோப்பு
           cat <<EOF > settings.gradle
           pluginManagement { 
               repositories { 
@@ -46,7 +47,7 @@ jobs:
           include ':app'
           EOF
           
-          # 2. App Build கோப்பு (பெயர் மாற்றம்: .final என்று சேர்த்துள்ளேன்)
+          # 3. App Build கோப்பு (புதிய ID உடன்)
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins {
@@ -70,7 +71,7 @@ jobs:
           }
           EOF
 
-          # 3. Manifest கோப்பு
+          # 4. Manifest கோப்பு
           mkdir -p app/src/main
           cat <<EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
@@ -92,16 +93,58 @@ jobs:
           </manifest>
           EOF
           
-          # 4. Java Package Fix (Java கோப்பிலும் முகவரியை மாற்ற வேண்டும்)
-          # பழைய package பெயரை புதிய பெயருக்கு மாற்றுகிறது
-          find app/src/main/java -type f -name "*.java" -exec sed -i 's/package com.vimal.panocam;/package com.vimal.panocam.final;/g' {} +
+          # 5. (மிக முக்கியம்) Java Code-ஐ இங்கேயே உருவாக்குகிறோம்!
+          # சரியான போல்டர் அமைப்பை உருவாக்குதல்
+          mkdir -p app/src/main/java/com/vimal/panocam/final
+          
+          # ஜாவா கோப்பை எழுதுதல்
+          cat <<EOF > app/src/main/java/com/vimal/panocam/final/MainActivity.java
+          package com.vimal.panocam.final;
+
+          import android.os.Bundle;
+          import android.widget.Toast;
+          import androidx.appcompat.app.AppCompatActivity;
+          import androidx.appcompat.app.AlertDialog;
+          import android.widget.EditText;
+          import android.content.DialogInterface;
+
+          public class MainActivity extends AppCompatActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  
+                  // பாஸ்வேர்ட் கேட்கும் திரை
+                  AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                  builder.setTitle("Security Check");
+                  builder.setMessage("Enter PIN (1234):");
+                  builder.setCancelable(false);
+
+                  final EditText input = new EditText(this);
+                  builder.setView(input);
+
+                  builder.setPositiveButton("Unlock", new DialogInterface.OnClickListener() {
+                      @Override
+                      public void onClick(DialogInterface dialog, int which) {
+                          String pin = input.getText().toString();
+                          if (pin.equals("1234")) {
+                              Toast.makeText(MainActivity.this, "Welcome Vimal!", Toast.LENGTH_LONG).show();
+                          } else {
+                              Toast.makeText(MainActivity.this, "Wrong PIN!", Toast.LENGTH_SHORT).show();
+                              finish();
+                          }
+                      }
+                  });
+                  builder.show();
+              }
+          }
+          EOF
 
       - name: Build APK (Force Installable)
-        # இங்கேதான் அந்த மேஜிக் நடக்கிறது! -Pandroid.injected.testOnly=false
+        # testOnly=false கொடுத்து இன்ஸ்டால் பிரச்சனையைத் தீர்க்கிறோம்
         run: gradle assembleDebug -Pandroid.injected.testOnly=false --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Panacam-Final-Install
+          name: Vimal-Panacam-Universal
           path: "**/*.apk"
