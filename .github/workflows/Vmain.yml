@@ -14,15 +14,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Download Gradle Wrapper Jar
+      - name: Fix Structure and Download Wrapper
         run: |
+          # 1. தேவையான போல்டர்களை உருவாக்குதல்
           mkdir -p gradle/wrapper
+          
+          # 2. முக்கியமான Jar கோப்பைத் தரவிறக்கம் செய்தல்
           curl -L https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+          
+          # 3. உங்கள் settings.gradle கோப்பைச் சரிசெய்தல்
+          echo "include ':app'" > settings.gradle
+          
+          # 4. gradlew கோப்பிற்கு அனுமதி வழங்குதல்
+          chmod +x gradlew
 
       - name: Build with Gradle
         run: ./gradlew assembleDebug --stacktrace
@@ -31,12 +36,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Vimal-Custom-App
-          path: app/build/outputs/apk/debug/*.apk
-          - name: Fix Structure and Build
-        run: |
-          mkdir -p gradle/wrapper
-          # தவறான இடத்தில் இருக்கும் கோப்புகளைச் சரியான இடத்திற்கு மாற்றுகிறது
-          find . -name "gradle-wrapper.properties" -exec cp {} gradle/wrapper/gradle-wrapper.properties \;
-          find . -name "gradle-wrapper.jar" -exec cp {} gradle/wrapper/gradle-wrapper.jar \;
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          path: "**/build/outputs/apk/debug/*.apk"
