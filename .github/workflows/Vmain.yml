@@ -1,5 +1,4 @@
-
-name: Vimal Native Success
+name: Vimal Real App Success
 on: 
   workflow_dispatch:
 
@@ -25,7 +24,7 @@ jobs:
       - name: Create Native Project Files
         run: |
           # 1. பழைய கோப்புகளை அழித்தல்
-          rm -rf app settings.gradle gradle.properties
+          rm -rf app settings.gradle gradle.properties build .gradle
           
           # 2. Settings கோப்பு
           cat <<EOF > settings.gradle
@@ -47,7 +46,7 @@ jobs:
           include ':app'
           EOF
           
-          # 3. App Build கோப்பு (எந்த Dependencies-உம் இல்லாத சுத்தமான கோப்பு)
+          # 3. App Build கோப்பு
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins {
@@ -67,10 +66,9 @@ jobs:
                   abortOnError false
               }
           }
-          // Dependencies பகுதியே தேவையில்லை!
           EOF
 
-          # 4. Manifest கோப்பு (Theme கிடையாது)
+          # 4. Manifest கோப்பு
           mkdir -p app/src/main
           cat <<EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
@@ -78,7 +76,7 @@ jobs:
               package="com.vimal.panocam.nativeapp">
               <application
                   android:allowBackup="true"
-                  android:label="Panacam Native">
+                  android:label="Panacam Real">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true">
@@ -91,7 +89,7 @@ jobs:
           </manifest>
           EOF
           
-          # 5. Native Java Code (எளிய முறை)
+          # 5. Native Java Code
           mkdir -p app/src/main/java/com/vimal/panocam/nativeapp
           cat <<EOF > app/src/main/java/com/vimal/panocam/nativeapp/MainActivity.java
           package com.vimal.panocam.nativeapp;
@@ -104,13 +102,11 @@ jobs:
           import android.content.DialogInterface;
           import android.view.Gravity;
 
-          // AppCompatActivity-க்கு பதில் வெறும் Activity
           public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   
-                  // பாஸ்வேர்ட் திரை
                   AlertDialog.Builder builder = new AlertDialog.Builder(this);
                   builder.setTitle("Security");
                   builder.setMessage("Enter PIN (1234):");
@@ -138,12 +134,12 @@ jobs:
           }
           EOF
 
-      - name: Build APK
-        # testOnly=false கொடுத்து இன்ஸ்டால் பிரச்சனையைத் தீர்க்கிறோம்
-        run: gradle assembleDebug -Pandroid.injected.testOnly=false --stacktrace
+      - name: Build APK (Clean & Build)
+        # 'clean' சேர்த்து பழைய குப்பைகளை நீக்கி, புதிதாக உருவாக்குகிறோம்
+        run: gradle clean assembleDebug -Pandroid.injected.testOnly=false --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Native-App
-          path: "**/*.apk"
+          name: Vimal-Real-App
+          path: app/build/outputs/apk/debug/*.apk
