@@ -17,16 +17,21 @@ jobs:
 
       - name: Auto Fix Structure
         run: |
-          # 1. சரியான போல்டரை உருவாக்குதல்
+          # 1. சரியான சிறிய எழுத்து போல்டரை உருவாக்குதல்
           mkdir -p gradle/wrapper
           
-          # 2. தவறான பெயரில் (Wrapper) இருக்கும் கோப்பைச் சரியான இடத்திற்கு மாற்றுதல்
-          find . -name "gradle-wrapper.properties" -exec cp {} gradle/wrapper/gradle-wrapper.properties \;
+          # 2. உங்கள் ரெப்போவில் எங்கே இருந்தாலும் .properties கோப்பைக் கண்டுபிடித்து நகர்த்துதல்
+          find . -name "gradle-wrapper.prope*" -exec cp {} gradle/wrapper/gradle-wrapper.properties \;
           
-          # 3. Jar கோப்பைத் தரவிறக்கம் செய்தல்
-          curl -L https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          # 3. Jar கோப்பைச் சரியான இடத்திற்கு நகர்த்துதல்
+          find . -name "gradle-wrapper.jar" -exec cp {} gradle/wrapper/gradle-wrapper.jar \;
           
-          # 4. அனுமதி வழங்குதல்
+          # 4. ஒருவேளை Jar கோப்பு இல்லை என்றால் பதிவிறக்கம் செய்தல்
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            curl -L https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          fi
+          
+          # 5. gradlew அனுமதி வழங்குதல்
           chmod +x gradlew
 
       - name: Build with Gradle
