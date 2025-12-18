@@ -1,5 +1,5 @@
 
-name: Vimal Final NoError
+name: Vimal Native Success
 on: 
   workflow_dispatch:
 
@@ -22,9 +22,9 @@ jobs:
           gradle-version: '8.0' 
           cache-disabled: true
 
-      - name: Create Project Files (No Check Mode)
+      - name: Create Native Project Files
         run: |
-          # 1. பழைய கோப்புகளை முழுமையாக அழித்தல்
+          # 1. பழைய கோப்புகளை அழித்தல்
           rm -rf app settings.gradle gradle.properties
           
           # 2. Settings கோப்பு
@@ -47,45 +47,38 @@ jobs:
           include ':app'
           EOF
           
-          # 3. App Build கோப்பு (Lint Disable + Install Fix)
+          # 3. App Build கோப்பு (எந்த Dependencies-உம் இல்லாத சுத்தமான கோப்பு)
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins {
               id 'com.android.application' version '8.0.0'
           }
           android {
-              namespace 'com.vimal.panocam.final'
+              namespace 'com.vimal.panocam.nativeapp'
               compileSdk 33
               defaultConfig {
-                  applicationId "com.vimal.panocam.final" 
+                  applicationId "com.vimal.panocam.nativeapp" 
                   minSdk 24
                   targetSdk 33
                   versionCode 1
                   versionName "1.0"
               }
-              // இதுதான் முக்கியம்! குறைகளை பெரிதுபடுத்தாதே என்று சொல்கிறோம்
               lintOptions {
                   abortOnError false
-                  checkReleaseBuilds false
               }
           }
-          dependencies {
-              implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.9.0'
-              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-          }
+          // Dependencies பகுதியே தேவையில்லை!
           EOF
 
-          # 4. Manifest கோப்பு
+          # 4. Manifest கோப்பு (Theme கிடையாது)
           mkdir -p app/src/main
           cat <<EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.vimal.panocam.final">
+              package="com.vimal.panocam.nativeapp">
               <application
                   android:allowBackup="true"
-                  android:label="Panacam Final"
-                  android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                  android:label="Panacam Native">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true">
@@ -98,39 +91,44 @@ jobs:
           </manifest>
           EOF
           
-          # 5. Java Code (Password: 1234)
-          mkdir -p app/src/main/java/com/vimal/panocam/final
-          cat <<EOF > app/src/main/java/com/vimal/panocam/final/MainActivity.java
-          package com.vimal.panocam.final;
+          # 5. Native Java Code (எளிய முறை)
+          mkdir -p app/src/main/java/com/vimal/panocam/nativeapp
+          cat <<EOF > app/src/main/java/com/vimal/panocam/nativeapp/MainActivity.java
+          package com.vimal.panocam.nativeapp;
 
+          import android.app.Activity;
+          import android.app.AlertDialog;
           import android.os.Bundle;
-          import android.widget.Toast;
-          import androidx.appcompat.app.AppCompatActivity;
-          import androidx.appcompat.app.AlertDialog;
           import android.widget.EditText;
+          import android.widget.Toast;
           import android.content.DialogInterface;
+          import android.view.Gravity;
 
-          public class MainActivity extends AppCompatActivity {
+          // AppCompatActivity-க்கு பதில் வெறும் Activity
+          public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   
+                  // பாஸ்வேர்ட் திரை
                   AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                  builder.setTitle("Security Check");
+                  builder.setTitle("Security");
                   builder.setMessage("Enter PIN (1234):");
                   builder.setCancelable(false);
 
                   final EditText input = new EditText(this);
                   builder.setView(input);
 
-                  builder.setPositiveButton("Unlock", new DialogInterface.OnClickListener() {
+                  builder.setPositiveButton("Open", new DialogInterface.OnClickListener() {
                       @Override
                       public void onClick(DialogInterface dialog, int which) {
                           String pin = input.getText().toString();
                           if (pin.equals("1234")) {
-                              Toast.makeText(MainActivity.this, "Welcome Vimal!", Toast.LENGTH_LONG).show();
+                              Toast toast = Toast.makeText(MainActivity.this, "Welcome Vimal!", Toast.LENGTH_LONG);
+                              toast.setGravity(Gravity.CENTER, 0, 0);
+                              toast.show();
                           } else {
-                              Toast.makeText(MainActivity.this, "Wrong PIN!", Toast.LENGTH_SHORT).show();
+                              Toast.makeText(MainActivity.this, "Wrong PIN", Toast.LENGTH_SHORT).show();
                               finish();
                           }
                       }
@@ -139,16 +137,13 @@ jobs:
               }
           }
           EOF
-          
-          # 6. Resource Folders (Missing Folder Error வராமல் இருக்க)
-          mkdir -p app/src/main/res/values
 
-      - name: Build APK (Force Success)
+      - name: Build APK
         # testOnly=false கொடுத்து இன்ஸ்டால் பிரச்சனையைத் தீர்க்கிறோம்
         run: gradle assembleDebug -Pandroid.injected.testOnly=false --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Panacam-Success
+          name: Vimal-Native-App
           path: "**/*.apk"
