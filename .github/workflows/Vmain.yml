@@ -15,18 +15,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Fix Structure and Download Wrapper
+      - name: Auto Fix Structure
         run: |
-          # 1. தேவையான போல்டர்களை உருவாக்குதல்
+          # 1. சரியான போல்டரை உருவாக்குதல்
           mkdir -p gradle/wrapper
           
-          # 2. முக்கியமான Jar கோப்பைத் தரவிறக்கம் செய்தல்
+          # 2. தவறான பெயரில் (Wrapper) இருக்கும் கோப்பைச் சரியான இடத்திற்கு மாற்றுதல்
+          find . -name "gradle-wrapper.properties" -exec cp {} gradle/wrapper/gradle-wrapper.properties \;
+          
+          # 3. Jar கோப்பைத் தரவிறக்கம் செய்தல்
           curl -L https://raw.githubusercontent.com/gradle/gradle/v8.0.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
           
-          # 3. உங்கள் settings.gradle கோப்பைச் சரிசெய்தல்
-          echo "include ':app'" > settings.gradle
-          
-          # 4. gradlew கோப்பிற்கு அனுமதி வழங்குதல்
+          # 4. அனுமதி வழங்குதல்
           chmod +x gradlew
 
       - name: Build with Gradle
