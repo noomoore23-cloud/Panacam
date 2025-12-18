@@ -32,3 +32,11 @@ jobs:
         with:
           name: Vimal-Custom-App
           path: app/build/outputs/apk/debug/*.apk
+          - name: Fix Structure and Build
+        run: |
+          mkdir -p gradle/wrapper
+          # தவறான இடத்தில் இருக்கும் கோப்புகளைச் சரியான இடத்திற்கு மாற்றுகிறது
+          find . -name "gradle-wrapper.properties" -exec cp {} gradle/wrapper/gradle-wrapper.properties \;
+          find . -name "gradle-wrapper.jar" -exec cp {} gradle/wrapper/gradle-wrapper.jar \;
+          chmod +x gradlew
+          ./gradlew assembleDebug
