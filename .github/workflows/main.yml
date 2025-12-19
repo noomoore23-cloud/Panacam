@@ -1,6 +1,7 @@
-name: Vimal Build APK
+
+name: Vimal Final Build
 on: 
-  workflow_dispatch: # நீங்கள் கைமுறையாக பட்டனை அழுத்தி இயக்க
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,16 +15,105 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.0' 
+          cache-disabled: true
 
-      - name: Build with Gradle
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Create Project Files
+        run: |
+          # பழைய குப்பைகளை அழித்தல்
+          rm -rf app settings.gradle gradle.properties build .gradle
+          
+          # Settings
+          cat <<EOF > settings.gradle
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+          rootProject.name = 'Panacam'
+          include ':app'
+          EOF
+          
+          # App Build (Native)
+          mkdir -p app
+          cat <<EOF > app/build.gradle
+          plugins { id 'com.android.application' version '8.0.0' }
+          android {
+              namespace 'com.vimal.panocam.final'
+              compileSdk 33
+              defaultConfig {
+                  applicationId "com.vimal.panocam.final" 
+                  minSdk 24
+                  targetSdk 33
+                  versionCode 1
+                  versionName "1.0"
+              }
+              lintOptions { abortOnError false }
+          }
+          EOF
+
+          # Manifest
+          mkdir -p app/src/main
+          cat <<EOF > app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.vimal.panocam.final">
+              <application android:label="Panacam Final" android:theme="@android:style/Theme.DeviceDefault.Light">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          
+          # Java Code
+          mkdir -p app/src/main/java/com/vimal/panocam/final
+          cat <<EOF > app/src/main/java/com/vimal/panocam/final/MainActivity.java
+          package com.vimal.panocam.final;
+          import android.app.Activity;
+          import android.app.AlertDialog;
+          import android.os.Bundle;
+          import android.widget.EditText;
+          import android.widget.Toast;
+          import android.content.DialogInterface;
+
+          public class MainActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                  builder.setTitle("Vimal App");
+                  builder.setMessage("Enter PIN (1234):");
+                  final EditText input = new EditText(this);
+                  builder.setView(input);
+                  builder.setPositiveButton("Unlock", new DialogInterface.OnClickListener() {
+                      public void onClick(DialogInterface dialog, int which) {
+                          if (input.getText().toString().equals("1234")) {
+                              Toast.makeText(MainActivity.this, "Success!", Toast.LENGTH_LONG).show();
+                          }
+                      }
+                  });
+                  builder.show();
+              }
+          }
+          EOF
+
+      - name: Build APK
+        run: gradle clean assembleDebug -Pandroid.injected.testOnly=false --stacktrace
+
+      - name: 🔍 Find APK
+        run: |
+          echo "APK தேடுகிறது..."
+          # APK எங்கே இருந்தாலும் அதை கண்டுபிடித்து வெளியே கொண்டு வரும்
+          find . -name "*.apk" -type f -exec cp {} ./Vimal-App.apk \;
+          ls -lh Vimal-App.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Custom-App
-          path: app/build/outputs/apk/debug/*.apk
+          name: Vimal-Final-App
+          path: Vimal-App.apk
