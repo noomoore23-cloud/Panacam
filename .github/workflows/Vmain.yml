@@ -1,5 +1,5 @@
 
-name: Vimal Final Verified Build
+name: Vimal Final Search Method
 on: 
   workflow_dispatch:
 
@@ -24,7 +24,7 @@ jobs:
 
       - name: Create Project Files
         run: |
-          # 1. பழைய கோப்புகளை அழித்தல்
+          # 1. பழைய குப்பைகளை அழித்தல்
           rm -rf app settings.gradle gradle.properties build .gradle
           
           # 2. Settings கோப்பு
@@ -35,15 +35,15 @@ jobs:
           include ':app'
           EOF
           
-          # 3. App Build கோப்பு (Native Mode - No Errors)
+          # 3. App Build கோப்பு (Native - Simple)
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins { id 'com.android.application' version '8.0.0' }
           android {
-              namespace 'com.vimal.panocam.verified'
+              namespace 'com.vimal.panocam.search'
               compileSdk 33
               defaultConfig {
-                  applicationId "com.vimal.panocam.verified" 
+                  applicationId "com.vimal.panocam.search" 
                   minSdk 24
                   targetSdk 33
                   versionCode 1
@@ -58,8 +58,8 @@ jobs:
           cat <<EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.vimal.panocam.verified">
-              <application android:label="Panacam Verified" android:theme="@android:style/Theme.DeviceDefault.Light">
+              package="com.vimal.panocam.search">
+              <application android:label="Panacam Final" android:theme="@android:style/Theme.DeviceDefault.Light">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -71,9 +71,9 @@ jobs:
           EOF
           
           # 5. Java Code
-          mkdir -p app/src/main/java/com/vimal/panocam/verified
-          cat <<EOF > app/src/main/java/com/vimal/panocam/verified/MainActivity.java
-          package com.vimal.panocam.verified;
+          mkdir -p app/src/main/java/com/vimal/panocam/search
+          cat <<EOF > app/src/main/java/com/vimal/panocam/search/MainActivity.java
+          package com.vimal.panocam.search;
           import android.app.Activity;
           import android.app.AlertDialog;
           import android.os.Bundle;
@@ -102,20 +102,26 @@ jobs:
           }
           EOF
 
-      - name: Build APK (Clean Build)
+      - name: Build APK (Force Clean)
+        # பழையதை அழித்து புதிதாக உருவாக்கு (Clean Build)
         run: gradle clean assembleDebug -Pandroid.injected.testOnly=false --stacktrace
 
       - name: 🕵️ Find & Move APK
         run: |
           echo "APK தேடுதல் ஆரம்பம்..."
-          # APK பைலைத் தேடி 'final.apk' என்ற பெயரில் வெளியே கொண்டு வரும்
-          find app/build/outputs/apk/debug -name "*.apk" -exec cp {} ./final.apk \;
           
-          # பைல் இருக்கிறதா என்றும், அதன் அளவு என்ன என்றும் காட்டும்
+          # 1. கம்ப்யூட்டரில் உள்ள எல்லா APK பைல்களையும் கண்டுபிடி
+          find . -name "*.apk" -type f
+          
+          # 2. கண்டுபிடித்த பைலை 'final.apk' என்ற பெயரில் வாசலுக்கு கொண்டு வா
+          # இதுதான் மிக முக்கியமான வரி!
+          find . -name "*.apk" -type f -exec cp {} ./final.apk \;
+          
+          echo "பைல் சைஸ் சரிபார்ப்பு:"
           ls -lh final.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Working-App
+          name: Vimal-Final-App
           path: final.apk
