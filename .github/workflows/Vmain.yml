@@ -1,4 +1,5 @@
-name: Vimal Day2 Success
+
+name: Vimal Final Verified Build
 on: 
   workflow_dispatch:
 
@@ -21,12 +22,12 @@ jobs:
           gradle-version: '8.0' 
           cache-disabled: true
 
-      - name: Create Native Project Files
+      - name: Create Project Files
         run: |
-          # பழைய கோப்புகளை முழுமையாக அழித்தல்
+          # 1. பழைய கோப்புகளை அழித்தல்
           rm -rf app settings.gradle gradle.properties build .gradle
           
-          # 1. Settings கோப்பு
+          # 2. Settings கோப்பு
           cat <<EOF > settings.gradle
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
@@ -34,15 +35,15 @@ jobs:
           include ':app'
           EOF
           
-          # 2. App Build கோப்பு (Native - No Dependencies)
+          # 3. App Build கோப்பு (Native Mode - No Errors)
           mkdir -p app
           cat <<EOF > app/build.gradle
           plugins { id 'com.android.application' version '8.0.0' }
           android {
-              namespace 'com.vimal.panocam.day2'
+              namespace 'com.vimal.panocam.verified'
               compileSdk 33
               defaultConfig {
-                  applicationId "com.vimal.panocam.day2" 
+                  applicationId "com.vimal.panocam.verified" 
                   minSdk 24
                   targetSdk 33
                   versionCode 1
@@ -52,13 +53,13 @@ jobs:
           }
           EOF
 
-          # 3. Manifest கோப்பு
+          # 4. Manifest கோப்பு
           mkdir -p app/src/main
           cat <<EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.vimal.panocam.day2">
-              <application android:label="Panacam Day2" android:theme="@android:style/Theme.DeviceDefault.Light">
+              package="com.vimal.panocam.verified">
+              <application android:label="Panacam Verified" android:theme="@android:style/Theme.DeviceDefault.Light">
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -69,39 +70,30 @@ jobs:
           </manifest>
           EOF
           
-          # 4. Java Code (Simple & Strong)
-          mkdir -p app/src/main/java/com/vimal/panocam/day2
-          cat <<EOF > app/src/main/java/com/vimal/panocam/day2/MainActivity.java
-          package com.vimal.panocam.day2;
+          # 5. Java Code
+          mkdir -p app/src/main/java/com/vimal/panocam/verified
+          cat <<EOF > app/src/main/java/com/vimal/panocam/verified/MainActivity.java
+          package com.vimal.panocam.verified;
           import android.app.Activity;
           import android.app.AlertDialog;
           import android.os.Bundle;
           import android.widget.EditText;
           import android.widget.Toast;
           import android.content.DialogInterface;
-          import android.view.Gravity;
 
           public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  
                   AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                  builder.setTitle("Vimal App Day 2");
+                  builder.setTitle("Vimal App");
                   builder.setMessage("Enter PIN (1234):");
-                  builder.setCancelable(false);
                   final EditText input = new EditText(this);
                   builder.setView(input);
-
                   builder.setPositiveButton("Unlock", new DialogInterface.OnClickListener() {
                       public void onClick(DialogInterface dialog, int which) {
                           if (input.getText().toString().equals("1234")) {
-                              Toast t = Toast.makeText(MainActivity.this, "Success! Welcome Vimal", Toast.LENGTH_LONG);
-                              t.setGravity(Gravity.CENTER, 0, 0);
-                              t.show();
-                          } else {
-                              Toast.makeText(MainActivity.this, "Wrong PIN", Toast.LENGTH_SHORT).show();
-                              finish();
+                              Toast.makeText(MainActivity.this, "Success!", Toast.LENGTH_LONG).show();
                           }
                       }
                   });
@@ -110,24 +102,20 @@ jobs:
           }
           EOF
 
-      - name: Build APK
-        run: gradle assembleDebug -Pandroid.injected.testOnly=false --stacktrace
+      - name: Build APK (Clean Build)
+        run: gradle clean assembleDebug -Pandroid.injected.testOnly=false --stacktrace
 
-      - name: 🔍 Find and Verify APK
+      - name: 🕵️ Find & Move APK
         run: |
-          echo "APK தேடுதல் வேட்டை ஆரம்பம்..."
-          # APK பைலைத் தேடி கண்டுபிடிக்கிறது
-          find . -name "*.apk" -type f
+          echo "APK தேடுதல் ஆரம்பம்..."
+          # APK பைலைத் தேடி 'final.apk' என்ற பெயரில் வெளியே கொண்டு வரும்
+          find app/build/outputs/apk/debug -name "*.apk" -exec cp {} ./final.apk \;
           
-          # APK பைலின் அளவைக் காட்டுகிறது (இதுதான் முக்கியம்!)
-          echo "ஃபைல் சைஸ் என்ன?"
-          find . -name "*.apk" -type f -exec ls -lh {} \;
-          
-          # கிடைத்த APK-வை சரியான இடத்திற்கு நகர்த்துகிறது
-          find . -name "*.apk" -type f -exec cp {} ./Vimal-Day2-App.apk \;
+          # பைல் இருக்கிறதா என்றும், அதன் அளவு என்ன என்றும் காட்டும்
+          ls -lh final.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Day2-App
-          path: Vimal-Day2-App.apk
+          name: Vimal-Working-App
+          path: final.apk
