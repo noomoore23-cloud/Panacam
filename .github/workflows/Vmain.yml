@@ -1,4 +1,4 @@
-name: Vimal Final APK Finder
+name: Vimal Day2 Success
 on: 
   workflow_dispatch:
 
@@ -23,63 +23,43 @@ jobs:
 
       - name: Create Native Project Files
         run: |
-          # 1. பழைய கோப்புகளை அழித்தல்
+          # பழைய கோப்புகளை முழுமையாக அழித்தல்
           rm -rf app settings.gradle gradle.properties build .gradle
           
-          # 2. Settings கோப்பு
+          # 1. Settings கோப்பு
           cat <<EOF > settings.gradle
-          pluginManagement { 
-              repositories { 
-                  google() 
-                  mavenCentral() 
-                  gradlePluginPortal() 
-              } 
-          }
-          dependencyResolutionManagement { 
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS) 
-              repositories { 
-                  google() 
-                  mavenCentral() 
-              } 
-          }
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
           rootProject.name = 'Panacam'
           include ':app'
           EOF
           
-          # 3. App Build கோப்பு
+          # 2. App Build கோப்பு (Native - No Dependencies)
           mkdir -p app
           cat <<EOF > app/build.gradle
-          plugins {
-              id 'com.android.application' version '8.0.0'
-          }
+          plugins { id 'com.android.application' version '8.0.0' }
           android {
-              namespace 'com.vimal.panocam.nativeapp'
+              namespace 'com.vimal.panocam.day2'
               compileSdk 33
               defaultConfig {
-                  applicationId "com.vimal.panocam.nativeapp" 
+                  applicationId "com.vimal.panocam.day2" 
                   minSdk 24
                   targetSdk 33
                   versionCode 1
                   versionName "1.0"
               }
-              lintOptions {
-                  abortOnError false
-              }
+              lintOptions { abortOnError false }
           }
           EOF
 
-          # 4. Manifest கோப்பு
+          # 3. Manifest கோப்பு
           mkdir -p app/src/main
           cat <<EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.vimal.panocam.nativeapp">
-              <application
-                  android:allowBackup="true"
-                  android:label="Panacam Final">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
+              package="com.vimal.panocam.day2">
+              <application android:label="Panacam Day2" android:theme="@android:style/Theme.DeviceDefault.Light">
+                  <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -89,11 +69,10 @@ jobs:
           </manifest>
           EOF
           
-          # 5. Native Java Code
-          mkdir -p app/src/main/java/com/vimal/panocam/nativeapp
-          cat <<EOF > app/src/main/java/com/vimal/panocam/nativeapp/MainActivity.java
-          package com.vimal.panocam.nativeapp;
-
+          # 4. Java Code (Simple & Strong)
+          mkdir -p app/src/main/java/com/vimal/panocam/day2
+          cat <<EOF > app/src/main/java/com/vimal/panocam/day2/MainActivity.java
+          package com.vimal.panocam.day2;
           import android.app.Activity;
           import android.app.AlertDialog;
           import android.os.Bundle;
@@ -108,21 +87,18 @@ jobs:
                   super.onCreate(savedInstanceState);
                   
                   AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                  builder.setTitle("Security");
+                  builder.setTitle("Vimal App Day 2");
                   builder.setMessage("Enter PIN (1234):");
                   builder.setCancelable(false);
-
                   final EditText input = new EditText(this);
                   builder.setView(input);
 
-                  builder.setPositiveButton("Open", new DialogInterface.OnClickListener() {
-                      @Override
+                  builder.setPositiveButton("Unlock", new DialogInterface.OnClickListener() {
                       public void onClick(DialogInterface dialog, int which) {
-                          String pin = input.getText().toString();
-                          if (pin.equals("1234")) {
-                              Toast toast = Toast.makeText(MainActivity.this, "Welcome Vimal!", Toast.LENGTH_LONG);
-                              toast.setGravity(Gravity.CENTER, 0, 0);
-                              toast.show();
+                          if (input.getText().toString().equals("1234")) {
+                              Toast t = Toast.makeText(MainActivity.this, "Success! Welcome Vimal", Toast.LENGTH_LONG);
+                              t.setGravity(Gravity.CENTER, 0, 0);
+                              t.show();
                           } else {
                               Toast.makeText(MainActivity.this, "Wrong PIN", Toast.LENGTH_SHORT).show();
                               finish();
@@ -135,18 +111,23 @@ jobs:
           EOF
 
       - name: Build APK
-        # Clean & Build - பழைய குப்பைகளை அழித்து புதிதாக உருவாக்குதல்
-        run: gradle clean assembleDebug -Pandroid.injected.testOnly=false --stacktrace
+        run: gradle assembleDebug -Pandroid.injected.testOnly=false --stacktrace
 
-      - name: Find and Move APK
+      - name: 🔍 Find and Verify APK
         run: |
-          echo "APK தேடுகிறது..."
-          # APK எங்கே இருந்தாலும் அதை கண்டுபிடித்து வெளியே எடுத்து வைக்கும் மேஜிக் வரி
-          find . -name "*.apk" -type f -exec cp {} ./Vimal-Final.apk \;
-          ls -l Vimal-Final.apk
+          echo "APK தேடுதல் வேட்டை ஆரம்பம்..."
+          # APK பைலைத் தேடி கண்டுபிடிக்கிறது
+          find . -name "*.apk" -type f
+          
+          # APK பைலின் அளவைக் காட்டுகிறது (இதுதான் முக்கியம்!)
+          echo "ஃபைல் சைஸ் என்ன?"
+          find . -name "*.apk" -type f -exec ls -lh {} \;
+          
+          # கிடைத்த APK-வை சரியான இடத்திற்கு நகர்த்துகிறது
+          find . -name "*.apk" -type f -exec cp {} ./Vimal-Day2-App.apk \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vimal-Final-App
-          path: Vimal-Final.apk
+          name: Vimal-Day2-App
+          path: Vimal-Day2-App.apk
